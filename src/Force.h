@@ -59,6 +59,7 @@ class Force {
     void graphLegend();
     void graphData();
     void graphDateTime();
+    void UpdateDisplay();
 
     // --- Neopixel --- //
     Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, 8, NEO_GRB + NEO_KHZ800);

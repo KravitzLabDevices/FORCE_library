@@ -2,21 +2,7 @@
 #include "Force.h"
 
 /////////////////////////////////////////////////////////////////////////
-// RTC Functions 
-/////////////////////////////////////////////////////////////////////////
-RTC_PCF8523 rtc;
-
-void dateTime(uint16_t* date, uint16_t* time) {
-  DateTime now = rtc.now();
-  // return date using FAT_DATE macro to format fields
-  *date = FAT_DATE(now.year(), now.month(), now.day());
-
-  // return time using FAT_TIME macro to format fields
-  *time = FAT_TIME(now.hour(), now.minute(), now.second());
-}
-
-/////////////////////////////////////////////////////////////////////////
-// Housekeeping Functions 
+// Initialize FORCE!
 /////////////////////////////////////////////////////////////////////////
 Force::Force(float _force_req, int _press_length, int _dispense_length, int _time_flag) {
   force_req = _force_req;
@@ -25,6 +11,9 @@ Force::Force(float _force_req, int _press_length, int _dispense_length, int _tim
   time_flag = _time_flag;
 }
 
+/////////////////////////////////////////////////////////////////////////
+// Begin and Run
+/////////////////////////////////////////////////////////////////////////
 void Force::begin() {
   if (!ss.begin()) {
     Serial.println("seesaw couldn't be found!");
@@ -78,13 +67,11 @@ void Force::run() {
   Tare();
   check_buttons();
   TaskReq();
+  PressLengthReq();
   PlayTone();
   Dispense();
-  graphData();
-  graphLegend();
-  graphDateTime();
+  UpdateDisplay();
   Timeout();
-  PressLengthReq();
   SerialOutput();
   WriteToSD();
 }
@@ -94,8 +81,14 @@ void Force::run() {
 /////////////////////////////////////////////////////////////////////////
 void Force::check_buttons() {
   uint32_t buttons = ss.readButtons();
-  if (! (buttons & TFTWING_BUTTON_B) && (buttons & TFTWING_BUTTON_A)) {
-    pixels.setPixelColor(0, pixels.Color(10, 10, 10));
+    
+  if (! (buttons & TFTWING_BUTTON_A)) {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 50)); //Light Neopixel blue
+    pixels.show();
+  }
+  
+  if (! (buttons & TFTWING_BUTTON_B)) {
+    pixels.setPixelColor(0, pixels.Color(50, 0, 0)); //Light Neopixel red
     pixels.show();
     digitalWrite(SOLENOID, HIGH);
     delay (5000);
@@ -106,6 +99,12 @@ void Force::check_buttons() {
 /////////////////////////////////////////////////////////////////////////
 // Display Functions 
 /////////////////////////////////////////////////////////////////////////
+void Force::UpdateDisplay(){
+  graphData();
+  graphDateTime();
+  graphLegend();
+}
+
 void Force::graphData() {
   //Calculate datapoints to graph
   lasty = y;
@@ -200,10 +199,9 @@ void Force::graphLegend() {
 /////////////////////////////////////////////////////////////////////////
 // Logging Functions 
 /////////////////////////////////////////////////////////////////////////
-
 void Force::CreateDataFile() {
   //put this next line *Right Before* any file open line:
-//  SdFile::dateTimeCallback(dateTime);
+  SdFile::dateTimeCallback(dateTime);
 
   // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect, SD_SCK_MHZ(4))) {
@@ -228,7 +226,6 @@ void Force::writeHeader() {
 
 // Print data and time followed by pellet count and motorturns to SD card
 void Force::WriteToSD() {
-
   DateTime now = rtc.now();
   logfile.print(now.month());
   logfile.print("/");
@@ -260,7 +257,7 @@ void Force::WriteToSD() {
   logfile.print(",");  
   logfile.print(lick);
   logfile.print(",");   
-  logfile.println("Hello FORCE world!");
+  logfile.println("notes column");
   logfile.flush();
 
   if ( ! logfile ) {
@@ -456,7 +453,11 @@ void Force::SerialOutput() {
   Serial.print(now.minute(), DEC);
   Serial.print(':');
   Serial.print(now.second(), DEC);
-  Serial.println('\n');
+  Serial.print ("  ");
+  Serial.print(" Force1: ");
+  Serial.print(grams);
+  Serial.print(" Force2: ");
+  Serial.println(grams2);
 }
 
 void Force::Timeout() {
@@ -471,4 +472,18 @@ void Force::Timeout() {
       trial_flag=1;
     }
   }
+}
+
+/////////////////////////////////////////////////////////////////////////
+// RTC Functions 
+/////////////////////////////////////////////////////////////////////////
+RTC_PCF8523 rtc;
+
+void dateTime(uint16_t* date, uint16_t* time) {
+  DateTime now = rtc.now();
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(now.year(), now.month(), now.day());
+
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
 }
