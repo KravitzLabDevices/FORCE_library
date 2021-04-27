@@ -12,6 +12,20 @@ Force::Force(float _force_req, int _press_length, int _dispense_length, int _tim
 }
 
 /////////////////////////////////////////////////////////////////////////
+// RTC Functions 
+/////////////////////////////////////////////////////////////////////////
+RTC_PCF8523 rtc;
+
+void dateTime(uint16_t* date, uint16_t* time) {
+  DateTime now = rtc.now();
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(now.year(), now.month(), now.day());
+
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
+}
+
+/////////////////////////////////////////////////////////////////////////
 // Begin and Run
 /////////////////////////////////////////////////////////////////////////
 void Force::begin() {
@@ -474,16 +488,3 @@ void Force::Timeout() {
   }
 }
 
-/////////////////////////////////////////////////////////////////////////
-// RTC Functions 
-/////////////////////////////////////////////////////////////////////////
-RTC_PCF8523 rtc;
-
-void dateTime(uint16_t* date, uint16_t* time) {
-  DateTime now = rtc.now();
-  // return date using FAT_DATE macro to format fields
-  *date = FAT_DATE(now.year(), now.month(), now.day());
-
-  // return time using FAT_TIME macro to format fields
-  *time = FAT_TIME(now.hour(), now.minute(), now.second());
-}
