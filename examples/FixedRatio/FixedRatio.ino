@@ -2,7 +2,7 @@
 	Left lever is active, when mouse pushes it with >2g force for >300ms it triggers dispense for 200ms, and then starts a 30s timeout
 */
 
-#include <ForceLibrary.h>
+#include <Force.h>
 
 #define FORCE_REQ_g         2
 #define PRESS_LENGTH_ms     300
