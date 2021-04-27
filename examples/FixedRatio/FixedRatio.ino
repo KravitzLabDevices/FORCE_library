@@ -9,13 +9,13 @@
 #define DISPENSE_LENGTH_ms  200
 #define TIMEOUT_ms          30000
 
-Force feeder(FORCE_REQ_g, PRESS_LENGTH_ms, DISPENSE_LENGTH_ms, TIMEOUT_ms);
+Force frc(FORCE_REQ_g, PRESS_LENGTH_ms, DISPENSE_LENGTH_ms, TIMEOUT_ms);
 
 void setup() {
   Serial.begin(9600);
-  feeder.begin();
+  frc.begin();
 }
 
 void loop() {
-  feeder.run();
+  frc.run();
 }

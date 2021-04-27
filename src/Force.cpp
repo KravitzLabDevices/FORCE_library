@@ -61,6 +61,7 @@ void Force::begin() {
   if (!rtc.initialized() || rtc.lostPower()) {
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
+  
   rtc.start();
 
   // Initialize neopixel
@@ -78,14 +79,15 @@ void Force::begin() {
 
 void Force::run() {
   Sense();
-  Tare();
-  check_buttons();
+
+  //Task (combine into one or move task to Arduino example)
   TaskReq();
   PressLengthReq();
   PlayTone();
   Dispense();
-  UpdateDisplay();
   Timeout();
+
+  UpdateDisplay();
   SerialOutput();
   WriteToSD();
 }
@@ -298,7 +300,7 @@ void Force::error(uint8_t errno) {
 
 /********************************************************
   This function creates a unique filename for each file that
-  starts with "FED", then the date in MMDDYY,
+  starts with "FRC", then the date in MMDDYY,
   then an incrementing number for each new file created on the same date
 ********************************************************/
 void Force::getFilename(char *filename) {
@@ -381,6 +383,8 @@ void Force::Sense() {
   pixels.show();
 
   lick = digitalRead(18);
+  Tare();
+  check_buttons();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -439,7 +443,6 @@ void Force::Dispense() {
     }
   }
 }
-
 
 void Force::PressLengthReq() {
   time_lapse_lever_press = millis() - start_timer_lever_press;
