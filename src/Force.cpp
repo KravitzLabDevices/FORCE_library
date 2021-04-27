@@ -89,10 +89,14 @@ void Force::run() {
   WriteToSD();
 }
 
+/////////////////////////////////////////////////////////////////////////
+// Buttons Functions 
+/////////////////////////////////////////////////////////////////////////
 void Force::check_buttons() {
   uint32_t buttons = ss.readButtons();
   if (! (buttons & TFTWING_BUTTON_B) && (buttons & TFTWING_BUTTON_A)) {
-    //hold solenoid open for 5 sec
+    pixels.setPixelColor(0, pixels.Color(10, 10, 10));
+    pixels.show();
     digitalWrite(SOLENOID, HIGH);
     delay (5000);
     digitalWrite(SOLENOID, LOW);
@@ -320,9 +324,7 @@ void Force::logdata() {
 /////////////////////////////////////////////////////////////////////////
 // Load cell Functions 
 /////////////////////////////////////////////////////////////////////////
-
 void Force::Tare() {
-  //digitalWrite(13, LOW);
   if (millis() - start_timer > 5000)  {
     if (scaleChange < 1000) {  // this sets sensitivity for delaying taring
       pixels.setPixelColor(0, pixels.Color(0, 10, 10));
@@ -330,7 +332,6 @@ void Force::Tare() {
       scale.tare();
     }
     if (scaleChange2 < 1000) {
-  //    digitalWrite(13, HIGH);
       pixels.setPixelColor(0, pixels.Color(10, 10, 0));
       pixels.show();
       scale2.tare();
@@ -342,11 +343,6 @@ void Force::Tare() {
 }
 
 void Force::Sense() {
-  /********************************************************
-    Hold solenoid valve output low
-  ********************************************************/
-  //digitalWrite (solenoid, LOW) ;
-
   val = (scale.get_units());
   val2 = (scale2.get_units());
   outputValue = map(val, 0, 200, 0, 4095);
@@ -368,8 +364,9 @@ void Force::Sense() {
 
   lastReading = outputValue;
   lastReading2 = outputValue2;
-
-  pixels.setPixelColor(0, pixels.Color(0, outputValue / 100, outputValue2 / 100)); // Moderately bright green color.
+  
+  //control pixel color based on load cells 
+  pixels.setPixelColor(0, pixels.Color(0, outputValue / 100, outputValue2 / 100)); 
   pixels.show();
 
   lick = digitalRead(18);
