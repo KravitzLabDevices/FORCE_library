@@ -36,6 +36,8 @@ void dateTime(uint16_t* date, uint16_t* time) {
 // Begin 
 /////////////////////////////////////////////////////////////////////////
 void Force::begin() {
+  Serial.begin(9600);
+
   if (!ss.begin()) {
     Serial.println("seesaw couldn't be found!");
     while (1);
@@ -258,15 +260,8 @@ void Force::WriteToSD() {
   If any errors are detected with the SD card print on the screen
 ********************************************************/
 void Force::error(uint8_t errno) {
-  tft.setCursor(5, 68);
-  switch (errno) {
-    case 1:
-      Serial.println("SD initialization error");
-      tft.print("SD init error");
-      break;
-    default:
-      tft.print("Card error "); tft.print(errno);
-  }
+  tft.setCursor(5, 48);
+  tft.print("Check SD card");
 }
 
 /********************************************************
@@ -373,6 +368,7 @@ void Force::Dispense() {
   digitalWrite(A2, LOW);
   trial++;
   dispenseTime = millis();
+  Timeout();
 }
 
 void Force::Timeout() {

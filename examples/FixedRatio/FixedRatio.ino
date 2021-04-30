@@ -7,17 +7,14 @@ String sketch = "FR1";                                  //Unique identifier text
 Force force(sketch);                                    //Start FORCE object
 
 void setup() {
-  Serial.begin(9600);
-  force.begin();
+  force.begin();                                        //setup FORCE device
   force.req = 20;                                       //force requirement
-  force.timeoutLength = 2;                              //timeout in seconds
-  force.pressLength = 300;                              //minimum press length in ms
+  force.timeoutLength = 2;                              //timeout (in seconds)
 }
 
 void loop() {
   force.run();                                          //call force.run() at least once per loop 
-  if (force.grams > force.req) {
-    force.Dispense();
-    force.Timeout();
+  if (force.grams > force.req) {                        //if press force is greater than req
+    force.Dispense();                                   //dispense!
   }
 }
