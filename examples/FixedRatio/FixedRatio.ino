@@ -1,21 +1,19 @@
 /*
-	Left lever is active, when mouse pushes it with >2g force for >300ms it triggers dispense for 200ms, and then starts a 30s timeout
+FORCE v1.0.0
 */
-
-#include <Force.h>
-
-#define FORCE_REQ_g         2
-#define PRESS_LENGTH_ms     300
-#define DISPENSE_LENGTH_ms  200
-#define TIMEOUT_ms          30000
-
-Force frc(FORCE_REQ_g, PRESS_LENGTH_ms, DISPENSE_LENGTH_ms, TIMEOUT_ms);
+#include <Force.h>                                      //Include FORCE library 
+String sketch = "FR1";                                  //Unique identifier text for each sketch
+Force force(sketch);                                    //Start FORCE object
 
 void setup() {
   Serial.begin(9600);
-  frc.begin();
+  force.begin();
 }
 
 void loop() {
-  frc.run();
+  force.run();
+  if (force.grams > 50) {
+    force.Dispense();
+    force.Timeout();
+  }
 }

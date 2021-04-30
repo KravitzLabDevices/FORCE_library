@@ -4,11 +4,8 @@
 /////////////////////////////////////////////////////////////////////////
 // Initialize FORCE!
 /////////////////////////////////////////////////////////////////////////
-Force::Force(float _force_req, int _press_length, int _dispense_length, int _time_flag) {
-  force_req = _force_req;
-  press_length = _press_length;
-  dispense_length = _dispense_length;
-  time_flag = _time_flag;
+Force::Force(String sketch) {
+  sessiontype = sketch; 
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -26,7 +23,7 @@ void dateTime(uint16_t* date, uint16_t* time) {
 }
 
 /////////////////////////////////////////////////////////////////////////
-// Begin and Run
+// Begin 
 /////////////////////////////////////////////////////////////////////////
 void Force::begin() {
   if (!ss.begin()) {
@@ -77,19 +74,14 @@ void Force::begin() {
   scale2.set_scale(calibration_factor);
 }
 
+/////////////////////////////////////////////////////////////////////////
+// Run
+/////////////////////////////////////////////////////////////////////////
 void Force::run() {
   Sense();
-
-  //Task (combine into one or move task to Arduino example)
-  TaskReq();
-  PressLengthReq();
-  PlayTone();
-  Dispense();
-  Timeout();
-
   UpdateDisplay();
-  SerialOutput();
   WriteToSD();
+  SerialOutput();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -170,34 +162,12 @@ void Force::graphLegend() {
   tft.setCursor(30, 5);
   tft.setTextColor(ST7735_YELLOW);
 
-  tft.print("Mode:");
-  // tft.print(mode);
-  if (mode == 1) {
-    tft.fillRect(57, 5, 15, 8, ST7735_BLACK);
-    tft.print("PR ");
-  }
-
-  if (mode == 0) {
-    tft.fillRect(57, 5, 15, 8, ST7735_BLACK);
-    tft.print("FR ");
-  }
 
   tft.print(" f_req: ");
   tft.fillRect(120, 5, 40, 8, ST7735_BLACK); // clear the text after label
   tft.print(force_req, 1);
 
   tft.setCursor(30, 15);
-  if (mode == 1) {
-    tft.fillRect(30, 15, 120, 8, ST7735_BLACK); // clear the text after "trial:"
-    tft.print("Inc n:");
-    tft.print(inc);
-  }
-
-  if (mode == 0) {
-    tft.fillRect(30, 15, 120, 8, ST7735_BLACK); // clear the text after "trial:"
-    tft.print("Trial n:");
-    tft.print(FR_trials);
-  }
 
   tft.print(" g1:");
   tft.print(grams, 1);
@@ -207,7 +177,7 @@ void Force::graphLegend() {
   tft.fillRect(125, 25, 12, 12, ST7735_BLACK); // clear the text after "trial:"
   tft.setCursor(125, 25);
   tft.print (' ');
-  if (lick == true) {
+  if (lick == false) {
     tft.print ("L");
   }
 }
@@ -360,6 +330,8 @@ void Force::Sense() {
   val2 = (scale2.get_units());
   outputValue = map(val, 0, 200, 0, 4095);
   outputValue2 = map(val2, 0, 200, 0, 4095);
+  grams = outputValue / 7.5;
+  grams2 = outputValue2 / 7.5;
  
   if (outputValue > 4000) outputValue = 4000;
   if (outputValue < 1) outputValue = 0;
@@ -390,73 +362,26 @@ void Force::Sense() {
 /////////////////////////////////////////////////////////////////////////
 // TaskFunctions 
 /////////////////////////////////////////////////////////////////////////
-void Force::TaskReq() {
-  grams = outputValue / 7.5;
-  grams2 = outputValue2 / 7.5;
-  /////////////////////////////////
-  // mode 0, FR1
-  /////////////////////////////////
-
-  if (mode == 0 && trial == 1 && timeout_flag != 1) {
-    //force_req = 2;
-    if (grams > force_req) { //maybe put a stipulation in where this can't continuously be called, or re-zeroed, etc??///////////////////////////
-      press_flag = 1;
-    }
-    if (press_duration_exceeded == 1) {
-      dispense_flag = 1;
-      tone_flag = 1;
-      start_timer_disp = millis();
-      start_timer_timeout = millis();
-
-      timeout_flag = 1;
-      FR_trials++;
-      press_flag = 0;
-      press_duration_exceeded = 0;
-    }
-  }
-}
-
-void Force::PlayTone() {
-  if (tone_flag == 1) {
+void Force::Tone() {
     tone(A5, 500, 200);
     tone_flag = 0;
-  }
 }
 
 void Force::Dispense() {
-  if (dispense_flag == 1) {
-    press_duration_exceeded = 0;
-    unsigned int time_lapse_disp = millis() - start_timer_disp;
-
-    if (time_lapse_disp > 2000) {
-      Serial.println("Dispensing!");
-      digitalWrite(SOLENOID, HIGH);
-      digitalWrite(A2, HIGH); // A2 will be "reward dispensed" pin
-    }
-
-    if (time_lapse_disp > (2000+dispense_length)) {
-      digitalWrite(SOLENOID, LOW);
-      digitalWrite(A2, LOW);
-
-      start_timer_disp = millis(); // Reset for new trial
-      dispense_flag = 0;
-    }
-  }
+  digitalWrite(SOLENOID, HIGH);
+  digitalWrite(A2, HIGH); // A2 will be "reward dispensed" pin
+  delay (200);
+  digitalWrite(SOLENOID, LOW);
+  digitalWrite(A2, LOW);
 }
 
-void Force::PressLengthReq() {
-  time_lapse_lever_press = millis() - start_timer_lever_press;
-  if (grams < force_req) {
-    press_flag = 0;
-    start_timer_lever_press = millis(); //reset
-  }
-  if (press_flag == 1) {
-    if (time_lapse_lever_press > press_length) {
-      press_duration_exceeded = 1;
-    }
-  }
+void Force::Timeout() {
+  delay (1000);
 }
 
+/////////////////////////////////////////////////////////////////////////
+// Serial Output
+/////////////////////////////////////////////////////////////////////////
 void Force::SerialOutput() {
   DateTime now = rtc.now();
   Serial.print(now.year(), DEC);
@@ -476,18 +401,3 @@ void Force::SerialOutput() {
   Serial.print(" Force2: ");
   Serial.println(grams2);
 }
-
-void Force::Timeout() {
-  if (timeout_flag == 1) {
-    time_lapse_timeout = millis() - start_timer_timeout;
-    trial_flag=0;
-
-    // reset timeout timer
-    if (time_lapse_timeout > time_flag) {
-      start_timer_timeout = millis(); //reset for new trial
-      timeout_flag = 0;
-      trial_flag=1;
-    }
-  }
-}
-
