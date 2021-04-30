@@ -406,6 +406,6 @@ void Force::SerialOutput() {
   Serial.print ("  ");
   Serial.print(" Force1: ");
   Serial.print(grams,0);
-  Serial.print(" Force2: ");
+  Serial.print("   Force2: ");
   Serial.println(grams2,0);
 }
