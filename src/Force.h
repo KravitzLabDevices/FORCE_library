@@ -27,10 +27,10 @@
 #define TFT_RST     -1    // TFT display shield
 #define TFT_CS      5     // TFT display shield
 #define TFT_DC      6     // TFT display shield
-#define DOUT        12    // Load cells
-#define CLK         13    // Load cells
-#define DOUT2       11    // Load cells
-#define CLK2        9     // Load cells
+#define DOUT        12    // Load cell1
+#define CLK         13    // Load cell1
+#define DOUT2       11    // Load cell2
+#define CLK2        9     // Load cell2
 #define LICKOMETER  18    // Lick-o-meter
 #define BEEPER      19    // Beeper
 #define SOLENOID    4     // Solenoid
@@ -73,15 +73,11 @@ class Force {
     float calibration_factor = -2182.57639563;
     float scaleChange = 0;    // Load cell 1
     float lastReading = 0;    // Load cell 1
-    int change;               // Load cell 1
     float outputValue;        // Load cell 1
-    float val;                // Load cell 1
     float grams;
     float scaleChange2 = 0;   // Load cell 2
     float lastReading2 = 0;   // Load cell 2
-    int change2;              // Load cell 2
     float outputValue2;       // Load cell 2
-    float val2;               // Load cell 2
     float grams2;
     void Sense();
     void Tare();
@@ -100,14 +96,20 @@ class Force {
 
     // --- Solenoid functions --- //
     void Dispense();
+    unsigned long dispenseTime = 0;
 
-    // --- Other functions/variables --- //
+    // --- Trial functions--- //
     void Tone();
     void Timeout();
     void SerialOutput();
     int FRC = 0;          // This is the unique # of the device
-    bool lick = false;
+    bool lick = true;
     int start_timer = 0;
+    int trial = 0;
+    int req = 2;
+    int timeoutLength = 1;
+    int pressLength = 300;
+    unsigned long pressStart = 0;
 };
 
 #endif  // FORCE_H

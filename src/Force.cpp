@@ -9,6 +9,16 @@ Force::Force(String sketch) {
 }
 
 /////////////////////////////////////////////////////////////////////////
+// Run
+/////////////////////////////////////////////////////////////////////////
+void Force::run() {
+  Sense();
+  UpdateDisplay();
+  WriteToSD();
+  SerialOutput();
+}
+
+/////////////////////////////////////////////////////////////////////////
 // RTC Functions 
 /////////////////////////////////////////////////////////////////////////
 RTC_PCF8523 rtc;
@@ -72,16 +82,6 @@ void Force::begin() {
   scale.set_scale(calibration_factor);
   scale2.tare();
   scale2.set_scale(calibration_factor);
-}
-
-/////////////////////////////////////////////////////////////////////////
-// Run
-/////////////////////////////////////////////////////////////////////////
-void Force::run() {
-  Sense();
-  UpdateDisplay();
-  WriteToSD();
-  SerialOutput();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -153,32 +153,35 @@ void Force::graphDateTime() {
 }
 
 void Force::graphLegend() {
-  // Print legend
-  //  tft.fillRect(0, 0, 20, 25, ST7735_BLACK);
-  tft.setCursor(0, 5);  tft.setTextColor(ST7735_MAGENTA);
-  tft.println("F1");   tft.setTextColor(ST7735_CYAN);
-  tft.println("F2");
-
-  tft.setCursor(30, 5);
+  // Print force output on F1 and F2
+  tft.fillRect(12, 0, 40, 24, ST7735_BLACK); // clear the text after label
+  tft.setCursor(0, 5);  
+  tft.setTextColor(ST7735_MAGENTA);
+  tft.print("F1: ");   
+  tft.println(grams,0);
+  tft.setTextColor(ST7735_CYAN);
+  tft.print("F2: ");
+  tft.print(grams2,0);
+  
+  // Print force requirement
+  tft.setCursor(60, 5);
   tft.setTextColor(ST7735_YELLOW);
+  tft.print("Req: ");
+  tft.print(req);
+  tft.print("g");
 
+  // Print trial 
+  tft.setCursor(60, 17);
+  tft.setTextColor(ST7735_YELLOW);
+  tft.print("Trial: ");
+  tft.print(trial);
 
-  tft.print(" f_req: ");
-  tft.fillRect(120, 5, 40, 8, ST7735_BLACK); // clear the text after label
-  tft.print(force_req, 1);
-
-  tft.setCursor(30, 15);
-
-  tft.print(" g1:");
-  tft.print(grams, 1);
-
-  //Visualize licks
-  tft.setTextColor(ST7735_WHITE);
-  tft.fillRect(125, 25, 12, 12, ST7735_BLACK); // clear the text after "trial:"
-  tft.setCursor(125, 25);
-  tft.print (' ');
+  //Indicate licks
   if (lick == false) {
-    tft.print ("L");
+    tft.setTextColor(ST7735_WHITE);
+    tft.fillRect(5, 66, 40, 12, ST7735_BLACK); // clear the text after label
+    tft.setCursor(7, 68);
+    tft.print ("Lick");
   }
 }
 
@@ -231,7 +234,7 @@ void Force::WriteToSD() {
   logfile.print(",");
   logfile.print(FRC); // Print device name
   logfile.print(",");
-  logfile.print(force_req); // Print for requirement
+  logfile.print(req); // Print for requirement
   logfile.print(",");
   logfile.print(millis()); //print millis since start
   logfile.print(",");
@@ -264,8 +267,6 @@ void Force::error(uint8_t errno) {
     default:
       tft.print("Card error "); tft.print(errno);
   }
-  
-  
 }
 
 /********************************************************
@@ -307,6 +308,38 @@ void Force::logdata() {
 /////////////////////////////////////////////////////////////////////////
 // Load cell Functions 
 /////////////////////////////////////////////////////////////////////////
+void Force::Sense() {
+  grams = (scale.get_units());
+  grams2 = (scale2.get_units());
+  if (grams < 0) grams = 0;
+  if (grams2 < 0) grams2 = 0;
+  
+  outputValue = map(grams, 0, 200, 0, 4095);
+  outputValue2 = map(grams2, 0, 200, 0, 4095);
+ 
+  if (outputValue > 4000) outputValue = 4000;
+  if (outputValue < 1) outputValue = 0;
+  if (outputValue2 > 4000) outputValue2 = 4000;
+  if (outputValue2 < 1) outputValue2 = 0;
+
+  analogWrite(A0, outputValue2);
+  analogWrite(A1, outputValue);
+  
+  scaleChange += abs(outputValue - lastReading);
+  scaleChange2 += abs(outputValue2 - lastReading2);
+
+  lastReading = outputValue;
+  lastReading2 = outputValue2;
+  
+  //control pixel color based on load cells 
+  pixels.setPixelColor(0, pixels.Color(0, outputValue / 100, outputValue2 / 100)); 
+  pixels.show();
+
+  lick = digitalRead(18);
+  Tare();
+  check_buttons();
+}
+
 void Force::Tare() {
   if (millis() - start_timer > 5000)  {
     if (scaleChange < 1000) {  // this sets sensitivity for delaying taring
@@ -325,58 +358,33 @@ void Force::Tare() {
   }
 }
 
-void Force::Sense() {
-  val = (scale.get_units());
-  val2 = (scale2.get_units());
-  outputValue = map(val, 0, 200, 0, 4095);
-  outputValue2 = map(val2, 0, 200, 0, 4095);
-  grams = outputValue / 7.5;
-  grams2 = outputValue2 / 7.5;
- 
-  if (outputValue > 4000) outputValue = 4000;
-  if (outputValue < 1) outputValue = 0;
-  if (outputValue2 > 4000) outputValue2 = 4000;
-  if (outputValue2 < 1) outputValue2 = 0;
-
-  analogWrite(A0, outputValue2);
-  analogWrite(A1, outputValue);
-  
-  change = (outputValue - lastReading);
-  change2 = (outputValue2 - lastReading2);
-
-  scaleChange += abs(change);
-  scaleChange2 += abs(change2);
-
-  lastReading = outputValue;
-  lastReading2 = outputValue2;
-  
-  //control pixel color based on load cells 
-  pixels.setPixelColor(0, pixels.Color(0, outputValue / 100, outputValue2 / 100)); 
-  pixels.show();
-
-  lick = digitalRead(18);
-  Tare();
-  check_buttons();
-}
-
 /////////////////////////////////////////////////////////////////////////
 // TaskFunctions 
 /////////////////////////////////////////////////////////////////////////
 void Force::Tone() {
     tone(A5, 500, 200);
-    tone_flag = 0;
 }
 
 void Force::Dispense() {
   digitalWrite(SOLENOID, HIGH);
   digitalWrite(A2, HIGH); // A2 will be "reward dispensed" pin
-  delay (200);
+  delay (20);
   digitalWrite(SOLENOID, LOW);
   digitalWrite(A2, LOW);
+  trial++;
+  dispenseTime = millis();
 }
 
 void Force::Timeout() {
-  delay (1000);
+  tft.fillRect(12, 0, 160, 24, ST7735_BLACK); // clear task data on each trial
+  while ((millis() - dispenseTime) < (timeoutLength * 1000)){
+    run();
+    // Print force requirement
+    tft.setCursor(62, 29);
+    tft.setTextColor(ST7735_WHITE);
+    tft.print("TIMEOUT");
+  }
+  tft.fillRect(61, 28, 42, 12, ST7735_BLACK); // remove TIMEOUT text when timeout is over
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -397,7 +405,7 @@ void Force::SerialOutput() {
   Serial.print(now.second(), DEC);
   Serial.print ("  ");
   Serial.print(" Force1: ");
-  Serial.print(grams);
+  Serial.print(grams,0);
   Serial.print(" Force2: ");
-  Serial.println(grams2);
+  Serial.println(grams2,0);
 }
