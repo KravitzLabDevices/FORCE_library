@@ -81,6 +81,8 @@ class Force {
     float grams2;
     void Sense();
     void Tare();
+    void Calibrate();
+    bool calibrate_active = false;
 
     // --- SD File --- //
     SdFat SD;
@@ -104,6 +106,7 @@ class Force {
         
     // --- Trial functions--- //
     void Tone();
+    void Click();
     void Timeout(float timeout_length);
     int FRC = 0;          // This is the unique # of the device
     bool lick = false;
@@ -114,9 +117,15 @@ class Force {
     float timeout_length = 10;
     unsigned long pressStart = 0;
     float dispense_delay = 4;
+    int ratio = 1;
 
     // --- Serial out--- //
     void SerialOutput();
+
+    // --- start up menu--- //
+    void start_up_menu();
+    bool start_up = true;
+
 };
 
 #endif  // FORCE_H

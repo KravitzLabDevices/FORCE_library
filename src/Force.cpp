@@ -15,29 +15,26 @@ void Force::run() {
   Sense();
   UpdateDisplay();
   WriteToSD();
-//  SerialOutput();
+  SerialOutput();
 }
 
 /////////////////////////////////////////////////////////////////////////
 // TaskFunctions 
 /////////////////////////////////////////////////////////////////////////
-void Force::Tone() {
-    tone(A5, 500, 200);
-}
-
 void Force::Dispense(int ms) {
   trial++;
+  Tone();
   float successTime = millis();
   while ((millis() - successTime) < (dispense_delay * 1000)){
-    tft.setCursor(117, 5);
+    tft.setCursor(85, 44);
     tft.setTextColor(ST7735_WHITE);
     tft.print("Delay:");
-    tft.setCursor(122, 17);
+    tft.setCursor(85, 56);
     tft.setTextColor(ST7735_WHITE);
     tft.print((-(millis() - successTime - (dispense_delay*1000))/ 1000), 1);
     tft.print("s");
     run();
-    tft.fillRect(109, 4, 48, 24, ST7735_BLACK); // remove Delay text when timeout is over
+    tft.fillRect(84, 43, 48, 24, ST7735_BLACK); // remove Delay text when timeout is over
     if (grams > 1 or grams2 >1){ //only clear F1 ans F2 values if levers are being pushed
       tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after label
     }
@@ -57,20 +54,30 @@ void Force::Dispense(int ms) {
 void Force::Timeout(float timeout_length) {
   dispenseTime = millis();
   while ((millis() - dispenseTime) < (timeout_length * 1000)){
-    tft.setCursor(110, 5);
+    tft.setCursor(85, 44);
     tft.setTextColor(ST7735_WHITE);
     tft.print("Timeout:");
-    tft.setCursor(123, 17);
+    tft.setCursor(85, 56);
     tft.print((-(millis() - dispenseTime - (timeout_length*1000))/ 1000), 1);
     run();
-    tft.fillRect(120, 16, 42, 12, ST7735_BLACK); 
+    tft.fillRect(84, 43, 48, 24, ST7735_BLACK); 
     if ((grams > 1) or (grams2 > 1)) { //reset timeout if either lever pushed
       Timeout(timeout_length); 
       tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after F1 F2 labels
     }
   }
-  tft.fillRect(109, 4, 48, 24, ST7735_BLACK); // remove TIMEOUT text when timeout is over
   tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after F1 F2 labels
+}
+
+/////////////////////////////////////////////////////////////////////////
+// Sound Functions 
+/////////////////////////////////////////////////////////////////////////
+void Force::Tone() {
+  tone(A5, 500, 200);
+}
+
+void Force::Click() {
+  tone(A5, 800, 8);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -114,7 +121,6 @@ void Force::begin() {
   tft.initR(INITR_MINI160x80);    // Initialize a ST7735S chip, mini display
   tft.setRotation(3);
   tft.fillScreen(ST77XX_BLACK);
-  graphLegend();
 
   // Initialize SD
   SdFile::dateTimeCallback(dateTime);
@@ -139,6 +145,9 @@ void Force::begin() {
   scale.set_scale(calibration_factor);
   scale2.tare();
   scale2.set_scale(calibration_factor);
+  
+  //start up menu
+  start_up_menu();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -152,12 +161,20 @@ void Force::check_buttons() {
     pixels.show();
   }
   
-  if (! (buttons & TFTWING_BUTTON_B)) {
-    pixels.setPixelColor(0, pixels.Color(50, 0, 0)); //Light Neopixel red
-    pixels.show();
-    digitalWrite(SOLENOID, HIGH);
-    delay (5000);
-    digitalWrite(SOLENOID, LOW);
+ if ((! (buttons & TFTWING_BUTTON_A)) and ! (buttons & TFTWING_BUTTON_B)){
+    delay (1000);
+    if ((! (buttons & TFTWING_BUTTON_A)) and ! (buttons & TFTWING_BUTTON_B)){
+      pixels.setPixelColor(0, pixels.Color(50, 0, 0)); //Light Neopixel red
+      tft.fillScreen(ST77XX_BLACK);
+      tft.setCursor(40, 35);  
+      tft.setTextColor(ST7735_WHITE);
+      tft.println("Valve open");   
+      pixels.show();
+      digitalWrite(SOLENOID, HIGH);
+      delay (5000);
+      digitalWrite(SOLENOID, LOW);
+      tft.fillScreen(ST77XX_BLACK);
+    }
   }
 }
 
@@ -165,9 +182,9 @@ void Force::check_buttons() {
 // Display Functions 
 /////////////////////////////////////////////////////////////////////////
 void Force::UpdateDisplay(){
+  graphLegend();
   graphData();
   graphDateTime();
-  graphLegend();
 }
 
 void Force::graphData() {
@@ -180,7 +197,11 @@ void Force::graphData() {
   if (y2 > divideLine) y2 = divideLine;
 
   // Clear display in front of graph
-  if (x == 0) tft.fillRect(x, 81 - divideLine, 6, divideLine, ST7735_BLACK); //To remove the first bar
+  if (x == 0) {
+    tft.fillRect(x, 81 - divideLine, 6, divideLine, ST7735_BLACK); //To remove the first bar
+    tft.fillRect(0, 0, 160, divideLine, ST7735_BLACK); //To remove the first bar
+  }
+  tft.drawLine(x + 7, 78, x + 7, 25, ST7735_RED);
   tft.fillRect(x + 1, 81 - divideLine, 6, divideLine, ST7735_BLACK);
 
   //Graph data load cell 1:
@@ -224,29 +245,47 @@ void Force::graphLegend() {
   tft.setTextColor(ST7735_MAGENTA);
   tft.print("F1: ");   
   tft.println(grams,0);
+  tft.setCursor(0, 17); 
   tft.setTextColor(ST7735_CYAN);
   tft.print("F2: ");
   tft.print(grams2,0);
-  
+ 
   // Print force requirement
-  tft.setCursor(50, 5);
+  tft.setCursor(45, 5);
   tft.setTextColor(ST7735_YELLOW);
   tft.print("Req: ");
   tft.print(req);
   tft.print("g");
 
   // Print trial 
-  tft.setCursor(50, 17);
+  tft.setCursor(45, 17);
   tft.setTextColor(ST7735_YELLOW);
-  tft.print("Trial: ");
-  tft.fillRect(83, 17, 36, 12, ST7735_BLACK); // clear task data on each trial
+  tft.print("Trial:");
+  if (grams > 1 or grams2 >1){
+    tft.fillRect(80, 17, 24, 12, ST7735_BLACK); // clear task data on each trial
+  }
   tft.print(trial);
 
+  // Print FR ratio
+  tft.setCursor(110, 5);
+  tft.setTextColor(ST7735_YELLOW);
+  tft.print("FR:");
+  tft.print(ratio);
+
+  // Print current press
+  tft.setCursor(110, 17);
+  tft.setTextColor(ST7735_YELLOW);
+  tft.print("Press:");
+  if (grams > 1 or grams2 >1){
+    tft.fillRect(143, 17, 28, 12, ST7735_BLACK); // clear press data on each trial
+  }
+  tft.print(presses);
+
   //Indicate licks
-  tft.fillRect(0, 22, 40, 12, ST7735_BLACK); // clear the text after label
+  tft.fillRect(0, 27, 40, 12, ST7735_BLACK); // clear the text after label
   if (lick == true) {
     tft.setTextColor(ST7735_WHITE);
-    tft.setCursor(0, 24);
+    tft.setCursor(0, 28);
     tft.print ("Lick");
   }
 }
@@ -448,4 +487,167 @@ void Force::SerialOutput() {
   Serial.print(grams,0);
   Serial.print("   Force2: ");
   Serial.println(grams2,0);
+}
+
+/////////////////////////////////////////////////////////////////////////
+// FORCE menu
+/////////////////////////////////////////////////////////////////////////
+void Force::start_up_menu() {
+  int option = 0;
+  tft.fillScreen(ST77XX_BLACK);
+  tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+  while (start_up==true){
+    uint32_t buttons = ss.readButtons();
+    tft.setCursor(40, 5);  
+    tft.setTextColor(ST7735_MAGENTA);
+    tft.println("Startup Menu");   
+    
+    tft.setCursor(0, 20);  
+    tft.setTextColor(ST7735_CYAN);
+    
+    //option 0
+    tft.print("device #:       ");
+    tft.println(FRC);
+    if (option == 0){
+      if (! (buttons & TFTWING_BUTTON_RIGHT)) {
+        FRC ++;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+
+      }
+      if (! (buttons & TFTWING_BUTTON_LEFT)) {
+        FRC --;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      }
+    }
+    
+    //option 1
+    tft.print("ratio:          ");
+    tft.println(ratio);
+    if (option == 1){
+      if (! (buttons & TFTWING_BUTTON_RIGHT)) {
+        ratio ++;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+
+      }
+      if (! (buttons & TFTWING_BUTTON_LEFT)) {
+        ratio --;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      }
+    }
+    
+    //option 2
+    tft.print("force_req:      ");
+    tft.println(req);
+    if (option == 2){
+      if (! (buttons & TFTWING_BUTTON_RIGHT)) {
+        req ++;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+
+      }
+      if (! (buttons & TFTWING_BUTTON_LEFT)) {
+        req --;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      }
+    }
+
+    //option 3
+    tft.print("dispense_delay: ");
+    tft.print(dispense_delay,1);
+    tft.println("s");
+    if (option == 3){
+      if (! (buttons & TFTWING_BUTTON_RIGHT)) {
+        dispense_delay ++;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+
+      }
+      if (! (buttons & TFTWING_BUTTON_LEFT)) {
+        dispense_delay --;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      }
+    }
+
+
+    //option 4
+    tft.print("timeout:        ");
+    tft.print(timeout_length,1);
+    tft.println("s");
+    if (option == 4){
+      if (! (buttons & TFTWING_BUTTON_RIGHT)) {
+         Click();
+         timeout_length ++;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+
+      }
+      if (! (buttons & TFTWING_BUTTON_LEFT)) {
+        Click();
+        timeout_length --;
+        delay (250);
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      }
+    }
+    
+    //option 5
+    tft.println("Calibrate FORCE");
+    if (option == 5){
+      if (! (buttons & TFTWING_BUTTON_RIGHT)) {
+        Tone();
+        delay (250);
+        calibrate_active = true;
+        Calibrate();
+        tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      }
+    }
+    
+    //button up    
+    if (! (buttons & TFTWING_BUTTON_UP)) {
+      Click();
+      tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLACK); // erase current bar
+      option --;
+      if (option < 0) option = 0;
+      tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      delay (250);
+    }
+    
+    //button down
+    if (! (buttons & TFTWING_BUTTON_DOWN)) {
+      Click();
+      tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLACK); // erase current bar
+      option ++;
+      if (option > 5) option = 5;
+      tft.fillRect(0, (option * 8) + 19, 160, 9, ST7735_BLUE); // highlight active bar
+      delay (250);
+    }
+    
+    //button select    
+    if (! (buttons & TFTWING_BUTTON_SELECT)) {
+      Click();
+      tft.fillScreen(ST77XX_BLACK);
+      tft.setCursor(40, 35);  
+      tft.setTextColor(ST7735_WHITE);
+      tft.println("Starting FORCE!");   
+      start_up = false;
+    }   
+  }
+}
+
+void Force::Calibrate(){
+  while (calibrate_active==true){
+    tft.fillScreen(ST77XX_BLACK);
+    uint32_t buttons = ss.readButtons();
+    tft.setCursor(40, 5);  
+    tft.setTextColor(ST7735_MAGENTA);
+    tft.println("Calibration!");   
+    if (! (buttons & TFTWING_BUTTON_SELECT)) {
+      Click();
+      calibrate_active = false;
+  }
 }
