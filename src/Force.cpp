@@ -15,7 +15,62 @@ void Force::run() {
   Sense();
   UpdateDisplay();
   WriteToSD();
-  SerialOutput();
+//  SerialOutput();
+}
+
+/////////////////////////////////////////////////////////////////////////
+// TaskFunctions 
+/////////////////////////////////////////////////////////////////////////
+void Force::Tone() {
+    tone(A5, 500, 200);
+}
+
+void Force::Dispense(int ms) {
+  trial++;
+  float successTime = millis();
+  while ((millis() - successTime) < (dispense_delay * 1000)){
+    tft.setCursor(117, 5);
+    tft.setTextColor(ST7735_WHITE);
+    tft.print("Delay:");
+    tft.setCursor(122, 17);
+    tft.setTextColor(ST7735_WHITE);
+    tft.print((-(millis() - successTime - (dispense_delay*1000))/ 1000), 1);
+    tft.print("s");
+    run();
+    tft.fillRect(109, 4, 48, 24, ST7735_BLACK); // remove Delay text when timeout is over
+    if (grams > 1 or grams2 >1){ //only clear F1 ans F2 values if levers are being pushed
+      tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after label
+    }
+  }
+  digitalWrite(SOLENOID, HIGH);
+  digitalWrite(A2, HIGH); // A2 will be "reward dispensed" pin
+  digitalWrite(13, HIGH); // RED LED
+  delay (ms);
+  digitalWrite(SOLENOID, LOW);
+  digitalWrite(A2, LOW);
+  digitalWrite(13, LOW); // RED LED
+  pressTime = millis();
+  pressLength = 0;
+  Timeout(timeout_length);
+}
+
+void Force::Timeout(float timeout_length) {
+  dispenseTime = millis();
+  while ((millis() - dispenseTime) < (timeout_length * 1000)){
+    tft.setCursor(110, 5);
+    tft.setTextColor(ST7735_WHITE);
+    tft.print("Timeout:");
+    tft.setCursor(123, 17);
+    tft.print((-(millis() - dispenseTime - (timeout_length*1000))/ 1000), 1);
+    run();
+    tft.fillRect(120, 16, 42, 12, ST7735_BLACK); 
+    if ((grams > 1) or (grams2 > 1)) { //reset timeout if either lever pushed
+      Timeout(timeout_length); 
+      tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after F1 F2 labels
+    }
+  }
+  tft.fillRect(109, 4, 48, 24, ST7735_BLACK); // remove TIMEOUT text when timeout is over
+  tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after F1 F2 labels
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -145,18 +200,26 @@ void Force::graphDateTime() {
   DateTime now = rtc.now();
   tft.setTextColor(ST7735_WHITE);
   tft.setCursor(85, 68);
+  if (now.month() < 10)
+    tft.print('0');      // Trick to add leading zero for formatting
   tft.print(now.month(), DEC);
   tft.print('/');
+  if (now.day() < 10)
+    tft.print('0');      // Trick to add leading zero for formatting
   tft.print(now.day(), DEC);
   tft.print(' ');
   tft.print(now.hour(), DEC);
   tft.print(':');
+  if (now.minute() < 10)
+    tft.print('0');      // Trick to add leading zero for formatting
   tft.print(now.minute(), DEC);
 }
 
 void Force::graphLegend() {
   // Print force output on F1 and F2
-  tft.fillRect(12, 0, 40, 24, ST7735_BLACK); // clear the text after label
+  if (grams > 1 or grams2 >1){ //only clear F1 ans F2 values if levers are being pushed
+    tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after label
+  }
   tft.setCursor(0, 5);  
   tft.setTextColor(ST7735_MAGENTA);
   tft.print("F1: ");   
@@ -166,23 +229,24 @@ void Force::graphLegend() {
   tft.print(grams2,0);
   
   // Print force requirement
-  tft.setCursor(60, 5);
+  tft.setCursor(50, 5);
   tft.setTextColor(ST7735_YELLOW);
   tft.print("Req: ");
   tft.print(req);
   tft.print("g");
 
   // Print trial 
-  tft.setCursor(60, 17);
+  tft.setCursor(50, 17);
   tft.setTextColor(ST7735_YELLOW);
   tft.print("Trial: ");
+  tft.fillRect(83, 17, 36, 12, ST7735_BLACK); // clear task data on each trial
   tft.print(trial);
 
   //Indicate licks
-  if (lick == false) {
+  tft.fillRect(0, 22, 40, 12, ST7735_BLACK); // clear the text after label
+  if (lick == true) {
     tft.setTextColor(ST7735_WHITE);
-    tft.fillRect(5, 66, 40, 12, ST7735_BLACK); // clear the text after label
-    tft.setCursor(7, 68);
+    tft.setCursor(0, 24);
     tft.print ("Lick");
   }
 }
@@ -309,6 +373,16 @@ void Force::Sense() {
   if (grams < 0) grams = 0;
   if (grams2 < 0) grams2 = 0;
   
+  if (grams < req){
+    pressTime = millis();
+    pressLength = 0;
+  }
+  
+  if (grams > req) {
+    pressLength = (millis() - pressTime);
+  }
+  
+    
   outputValue = map(grams, 0, 200, 0, 4095);
   outputValue2 = map(grams2, 0, 200, 0, 4095);
  
@@ -330,7 +404,7 @@ void Force::Sense() {
   pixels.setPixelColor(0, pixels.Color(0, outputValue / 100, outputValue2 / 100)); 
   pixels.show();
 
-  lick = digitalRead(18);
+  lick = digitalRead(18) == LOW;
   Tare();
   check_buttons();
 }
@@ -351,36 +425,6 @@ void Force::Tare() {
     scaleChange  = 0;
     scaleChange2  = 0;
   }
-}
-
-/////////////////////////////////////////////////////////////////////////
-// TaskFunctions 
-/////////////////////////////////////////////////////////////////////////
-void Force::Tone() {
-    tone(A5, 500, 200);
-}
-
-void Force::Dispense() {
-  digitalWrite(SOLENOID, HIGH);
-  digitalWrite(A2, HIGH); // A2 will be "reward dispensed" pin
-  delay (20);
-  digitalWrite(SOLENOID, LOW);
-  digitalWrite(A2, LOW);
-  trial++;
-  dispenseTime = millis();
-  Timeout();
-}
-
-void Force::Timeout() {
-  tft.fillRect(12, 0, 160, 24, ST7735_BLACK); // clear task data on each trial
-  while ((millis() - dispenseTime) < (timeoutLength * 1000)){
-    run();
-    // Print force requirement
-    tft.setCursor(62, 29);
-    tft.setTextColor(ST7735_WHITE);
-    tft.print("TIMEOUT");
-  }
-  tft.fillRect(61, 28, 42, 12, ST7735_BLACK); // remove TIMEOUT text when timeout is over
 }
 
 /////////////////////////////////////////////////////////////////////////

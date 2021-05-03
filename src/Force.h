@@ -95,21 +95,28 @@ class Force {
     void logdata();
 
     // --- Solenoid functions --- //
-    void Dispense();
+    void Dispense(int ms = 20);
     unsigned long dispenseTime = 0;
 
+    // --- Lever functions --- //
+    unsigned long pressTime = 0;
+    unsigned long pressLength = 0;
+        
     // --- Trial functions--- //
     void Tone();
-    void Timeout();
-    void SerialOutput();
+    void Timeout(float timeout_length);
     int FRC = 0;          // This is the unique # of the device
-    bool lick = true;
+    bool lick = false;
     int start_timer = 0;
     int trial = 0;
-    int req = 2;
-    int timeoutLength = 1;
-    int pressLength = 300;
+    int presses = 0;
+    int req = 20;
+    float timeout_length = 10;
     unsigned long pressStart = 0;
+    float dispense_delay = 4;
+
+    // --- Serial out--- //
+    void SerialOutput();
 };
 
 #endif  // FORCE_H
