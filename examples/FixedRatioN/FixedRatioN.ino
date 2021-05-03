@@ -9,7 +9,7 @@
 int device_number = 2;                                  //give the device a unique number
 int ratio = 3;                                          //how many presses before dispensing?
 int force_req = 20;                                     //how hard to push?
-int hold_req = 350;                                     //how long to hold the force?
+int hold_time = 350;                                    //how long to hold the force?
 int timeout_length = 1;                                 //how long is the timeout between trials?
 int dispense_delay = 4;                                 //how many seconds between successful press and dispense?
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ int dispense_delay = 4;                                 //how many seconds betwe
 //                                        DON'T EDIT THESE LINES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <Force.h>                                      //Include FORCE library 
-String sketch = "FR1";                                  //unique identifier text for each sketch
+String sketch = "FR_N";                                 //unique identifier text for each sketch
 Force force(sketch);                                    //start FORCE object
 
 void setup() {
@@ -36,7 +36,7 @@ void loop() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                      WRITE YOUR BEHAVIORAL CODE BELOW HERE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if (force.pressLength > hold_req) {                   //if the force lever is held down for longer than the hold_req
+  if (force.pressLength > hold_time) {                  //if the force lever is held down for longer than the hold_req
     force.presses++;                                    //keep count of successful presses
     if (force.presses == ratio) {                       //if the number of ratio is met
       force.Dispense(20);                               //open solenoid to dispense (for length of time in ms)
