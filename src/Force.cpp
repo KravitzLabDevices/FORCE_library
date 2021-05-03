@@ -649,5 +649,6 @@ void Force::Calibrate(){
     if (! (buttons & TFTWING_BUTTON_SELECT)) {
       Click();
       calibrate_active = false;
+    }
   }
 }
