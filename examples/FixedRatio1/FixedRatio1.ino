@@ -8,7 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int device_number = 2;                                  //give the device a unique number
 int force_req = 20;                                     //how hard to push?
-int hold_req = 350;                                     //how long to hold the force?
+int hold_time = 350;                                    //how long to hold the force?
 int dispense_length = 100;                              //how long to open solenoid (in ms)?
 float dispense_delay = 4;                               //how many seconds between press and dispense?
 float timeout_length = 10;                              //how long is the timeout between trials?
@@ -36,7 +36,7 @@ void loop() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                      WRITE YOUR BEHAVIORAL CODE BELOW THIS LINE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if (force.pressLength > hold_req) {                   //if the force lever is held down for longer than the hold_req
+  if (force.pressLength > hold_time) {                  //if the force lever is held down for longer than the hold_req
     force.Dispense(dispense_length);                    //open solenoid to dispense (for length of time in ms)
   }
 }
