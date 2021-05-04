@@ -70,7 +70,8 @@ class Force {
     HX711 scale;
     HX711 scale2;
     float force_req = 2;      // was F_req. Force required to trigger the solenoid valve
-    float calibration_factor = -2182.57639563;
+    float calibration_factor = -3300;
+    float calibration_factor2 = -3300;
     float scaleChange = 0;    // Load cell 1
     float lastReading = 0;    // Load cell 1
     float outputValue;        // Load cell 1
@@ -83,6 +84,8 @@ class Force {
     void Tare();
     void Calibrate();
     bool calibrate_active = false;
+    bool ten_gram = false;
+    bool calibrated = false;
 
     // --- SD File --- //
     SdFat SD;
@@ -125,7 +128,7 @@ class Force {
     // --- start up menu--- //
     void start_up_menu();
     bool start_up = true;
-
+    void save_settings();
 };
 
 #endif  // FORCE_H
