@@ -47,6 +47,7 @@ class Force {
     void begin();
     void run();
     void check_buttons();
+    bool FR = true;
     
     // --- TFT display wing --- //
     Adafruit_miniTFTWing ss;
@@ -100,8 +101,9 @@ class Force {
     void logdata();
 
     // --- Solenoid functions --- //
-    void Dispense(int ms = 20);
-    unsigned long dispenseTime = 0;
+    unsigned long dispense_time = 0;
+    int dispense_amount = 20;
+    void Dispense();
 
     // --- Lever functions --- //
     unsigned long pressTime = 0;
