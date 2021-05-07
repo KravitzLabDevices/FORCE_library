@@ -33,7 +33,7 @@ void setup() {
   force.FR = FR;                                        //set FR flag
 }
 
-void loop() {
+void loop() { 
   force.run();                                          //call force.run() at least once per loop
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
