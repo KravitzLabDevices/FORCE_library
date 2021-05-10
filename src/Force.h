@@ -1,13 +1,13 @@
 /*
  * Required libraries:
  * - HX711 Arduino Library (v0.7.4) by Bogdan Necula, Andreas Motl
- * - SdFat (v2.0.6) by Bill Greiman
+ * - SdFat - Adafruit Fork (v1.2.3) by Bill Greiman
  * - RTClib (v1.13.0) by Adafruit
- * - Adafruit ST7735 and ST7789 Library (v1.7.1) by Adafruit
- * - Adafruit seesaw Library (v1.4.0) by Adafruit
- * - Adafruit Neopixel (v1.7.0) by Adafruit
+ * - Adafruit ST7735 and ST7789 Library (v1.7.2) by Adafruit
+ * - Adafruit seesaw Library (v1.4.2) by Adafruit
+ * - Adafruit Neopixel (v1.8.0) by Adafruit
  * - Adafruit GFX Library (v1.10.7) by Adafruit
- *
+ * - Adafruit Adafruit_SPIFlash (v3.4.1) by Adafruit
 */
 
 #ifndef FORCE_H
