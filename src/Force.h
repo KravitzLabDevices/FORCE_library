@@ -125,6 +125,7 @@ class Force {
     int hold_time = 350;
     int trials_per_block = 10;
     int max_force = 20; 
+    unsigned long start_time = 0;
 
     // --- Serial out--- //
     void SerialOutput();

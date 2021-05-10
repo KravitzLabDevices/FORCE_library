@@ -525,7 +525,7 @@ void Force::WriteToSD() {
   logfile.print(now.second());
   logfile.print(",");
   
-  logfile.print(millis()/1000.0000); //print seconds since start
+  logfile.print((millis()-start_time)/1000.0000); //print seconds since start
   logfile.print(",");
   
   logfile.print(FRC); // Print device name
@@ -979,6 +979,7 @@ void Force::start_up_menu() {
             print_settings();
             tft.println("Starting FORCE!");
             delay (250);
+            start_time = millis();
             start_up = false;
             page = 0;
          }
@@ -1154,6 +1155,7 @@ void Force::start_up_menu() {
             print_settings();
             tft.println("Starting FORCE!");
             delay (250);
+            start_time = millis();
             start_up = false;
             page = 0;
          }
