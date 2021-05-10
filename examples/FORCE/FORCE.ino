@@ -17,7 +17,7 @@
 //                                        DON'T EDIT THESE LINES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <Force.h>                                      //Include FORCE library 
-String ver = "v1.1.1";                                  //unique identifier text
+String ver = "v1.1.2";                                  //unique identifier text
 Force force(ver);                                       //start FORCE object
 
 void setup() {
