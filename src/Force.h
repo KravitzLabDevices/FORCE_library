@@ -22,6 +22,7 @@
 #include <HX711.h>
 #include <SdFat.h>
 #include "RTClib.h"
+#include "Adafruit_SPIFlash.h"
 
 // Pin definitions
 #define TFT_RST     -1    // TFT display shield
@@ -39,15 +40,14 @@ void dateTime(uint16_t* date, uint16_t* time);
 
 class Force {
   public:
-    Force(String sketch);
-    String sketch = "undef";
-    String sessiontype = "undef";
+    Force(String ver);
+    String ver = "undef";
+    String library_version = "undef";
             
     // --- Basic functions --- //
     void begin();
     void run();
     void check_buttons();
-    bool FR = true;
     
     // --- TFT display wing --- //
     Adafruit_miniTFTWing ss;
@@ -70,7 +70,6 @@ class Force {
     // --- Load Cells --- //
     HX711 scale;
     HX711 scale2;
-    float force_req = 2;      // was F_req. Force required to trigger the solenoid valve
     float calibration_factor = -3300;
     float calibration_factor2 = -3300;
     float scaleChange = 0;    // Load cell 1
@@ -85,7 +84,6 @@ class Force {
     void Tare();
     void Calibrate();
     bool calibrate_active = false;
-    bool ten_gram = false;
     bool calibrated = false;
 
     // --- SD File --- //
@@ -101,28 +99,32 @@ class Force {
     void logdata();
 
     // --- Solenoid functions --- //
-    unsigned long dispense_time = 0;
+    float dispense_time = 0;
     int dispense_amount = 20;
     void Dispense();
 
     // --- Lever functions --- //
     unsigned long pressTime = 0;
     unsigned long pressLength = 0;
-        
+    int dispense_delay = 4;
+
     // --- Trial functions--- //
+    int FRC = 1;          // This is the unique # of the device
+    bool PR = false;
     void Tone();
     void Click();
-    void Timeout(float timeout_length);
-    int FRC = 0;          // This is the unique # of the device
+    void Timeout(int timeout_length);
+    int timeout_length = 10;
     bool lick = false;
     int start_timer = 0;
-    int trial = 0;
+    int trial = 1;
     int presses = 0;
-    int req = 20;
-    float timeout_length = 10;
+    int req = 2;
     unsigned long pressStart = 0;
-    float dispense_delay = 4;
     int ratio = 1;
+    int hold_time = 350;
+    int trials_per_block = 10;
+    int max_force = 20; 
 
     // --- Serial out--- //
     void SerialOutput();
@@ -131,6 +133,13 @@ class Force {
     void start_up_menu();
     bool start_up = true;
     void save_settings();
+    
+    // --- save and load settings from QSPI flash --- //
+    int settings[9];  //array for saving settings on QSPI flash
+    int settings_recalled[9]; //arrat for reading from QSPI flash
+    void load_settings();
+    void reset_settings();
+    void print_settings();
 };
 
 #endif  // FORCE_H
