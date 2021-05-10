@@ -5,10 +5,12 @@
   alexxai@wustl.edu
   May, 2021
   
-  This project is released under the terms of the Creative Commons - Attribution - ShareAlike 3.0 license:
-  human readable: https://creativecommons.org/licenses/by-sa/3.0/
-  legal wording: https://creativecommons.org/licenses/by-sa/3.0/legalcode
-  Copyright (c) 2020 Lex Kravitz
+ KravitzLabDevices/FORCE_library is licensed under the
+ GNU General Public License v3.0
+
+ Permissions of this strong copyleft license are conditioned on making available complete source code of licensed works 
+ and modifications, which include larger works using a licensed work, under the same license. Copyright and license 
+ notices must be preserved. Contributors provide an express grant of patent rights.
   
 */
 
