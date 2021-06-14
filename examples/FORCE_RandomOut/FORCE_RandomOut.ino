@@ -34,10 +34,10 @@ void loop() {
     //Choose a random number
     randomSeed(millis());                                     //get a new randomSeed here so the sequence isn't the same every time
     int randnum = random(1, 4);                               //Pick a random number between 1 and 3
-    Serial.print("Random Num: ");                             //Print the random number
+    Serial.print("Random Num: ");                             //Print the random number to the Serial Monitor
     Serial.println(randnum);                          
 
-    force.presses++;                                          //keep count of successful presses
+    force.presses++;                                          //add 1 to force.presses
     force.Dispense();                                         //dispense reward
 
     if (randnum == 3) {                                       //if random number is 3...
