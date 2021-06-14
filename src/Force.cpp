@@ -37,7 +37,7 @@ void Force::run() {
   WriteToSD();
   DateTime now = rtc.now();
   unixtime  = now.unixtime();
-  //   SerialOutput();
+  SerialOutput();
 }
 
 /////////////////////////////////////////////////////////////////////////
