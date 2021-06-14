@@ -15,13 +15,29 @@ Force::Force(String ver) {
 }
 
 /////////////////////////////////////////////////////////////////////////
+// RTC Functions 
+/////////////////////////////////////////////////////////////////////////
+RTC_PCF8523 rtc;
+
+void dateTime(uint16_t* date, uint16_t* time) {
+  DateTime now = rtc.now();
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(now.year(), now.month(), now.day());
+
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
+}
+
+/////////////////////////////////////////////////////////////////////////
 //     
 /////////////////////////////////////////////////////////////////////////
 void Force::run() {
   Sense();
   UpdateDisplay();
   WriteToSD();
-  SerialOutput();
+  DateTime now = rtc.now();
+  unixtime  = now.unixtime();
+  //   SerialOutput();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -49,6 +65,8 @@ void Force::Dispense() {
   digitalWrite(13, HIGH); // RED LED
   delay (dispense_amount); //how long to open solenoid?
   digitalWrite(SOLENOID, LOW);
+  DateTime now = rtc.now();
+  dispenseTime = now.unixtime();
   digitalWrite(A2, LOW);
   digitalWrite(13, LOW); // RED LED
   pressTime = millis();
@@ -85,19 +103,7 @@ void Force::Click() {
   tone(A5, 800, 8);
 }
 
-/////////////////////////////////////////////////////////////////////////
-// RTC Functions 
-/////////////////////////////////////////////////////////////////////////
-RTC_PCF8523 rtc;
 
-void dateTime(uint16_t* date, uint16_t* time) {
-  DateTime now = rtc.now();
-  // return date using FAT_DATE macro to format fields
-  *date = FAT_DATE(now.year(), now.month(), now.day());
-
-  // return time using FAT_TIME macro to format fields
-  *time = FAT_TIME(now.hour(), now.minute(), now.second());
-}
 
 /////////////////////////////////////////////////////////////////////////
 // Begin
@@ -469,6 +475,8 @@ void Force::graphLegend() {
     tft.setTextColor(ST7735_WHITE);
     tft.setCursor(0, 28);
     tft.print ("Lick");
+    DateTime now = rtc.now();
+    lickTime = now.unixtime();
   }
   
   if (calibrated == false){

@@ -97,6 +97,8 @@ class Force {
     void error(uint8_t errno);
     void getFilename(char *filename);
     void logdata();
+    unsigned long unixtime = 0;
+
 
     // --- Solenoid functions --- //
     float dispense_time = 0;
@@ -126,6 +128,8 @@ class Force {
     int trials_per_block = 10;
     int max_force = 20; 
     unsigned long start_time = 0;
+    unsigned long lickTime = 0;
+    unsigned long dispenseTime = 0;
 
     // --- Serial out--- //
     void SerialOutput();
