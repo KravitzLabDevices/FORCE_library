@@ -37,7 +37,7 @@ void Force::run() {
   WriteToSD();
   DateTime now = rtc.now();
   unixtime  = now.unixtime();
-  SerialOutput();
+  //SerialOutput();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ void Force::run() {
 /////////////////////////////////////////////////////////////////////////
 void Force::Dispense() {
   trial++;
-  Tone();
+ // Tone();
   float successTime = millis();
   while ((millis() - successTime) < (dispense_delay * 1000)){
     tft.setCursor(85, 44);
@@ -84,7 +84,7 @@ void Force::Timeout(int timeout_length) {
     tft.print("s");
     run();
     tft.fillRect(84, 43, 80, 12, ST7735_BLACK); 
-    if ((grams > 1) or (grams2 > 1)) { //reset timeout if either lever pushed
+    if ((grams > 1.5) or (grams2 > 1.5)) { //reset timeout if either lever pushed
       Timeout(timeout_length); 
       tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after F1 F2 labels
     }
