@@ -26,7 +26,7 @@ void setup() {
 
 void loop() {
   force.run();                                          //call force.run() at least once per loop
-  
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //                                      WRITE CUSTOM BEHAVIORAL CODE BELOW HERE
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,29 +35,33 @@ void loop() {
     randomSeed(millis());                                     //get a new randomSeed here so the sequence isn't the same every time
     int randnum = random(1, 4);                               //Pick a random number between 1 and 3
     Serial.print("Random Num: ");                             //Print the random number to the Serial Monitor
-    Serial.println(randnum);                          
+    Serial.println(randnum);
 
     force.presses++;                                          //add 1 to force.presses
-    force.Dispense();                                         //dispense reward
+    //force.Dispense();                                         //dispense reward
 
-    if (randnum == 3) {                                       //if random number is 3...
+    if (randnum == 3) { //if random number is 3...
+      force.Tone();
       while ((force.unixtime - force.dispenseTime) < 15) {    //...and it is within 15 seconds of a dispense
-        force.run();                                          //keep force screen and timers running while waiting around for the 15sec delay
-        if (force.lick == true) {                             //if animal licks in this time period:
+        force.run();
+
+        //keep force screen and timers running while waiting around for the 15sec delay
+        if (force.lick == false) {                             //if animal licks in this time period:
 
           /////////////////////////////////////////////////
           // FORCE does this when both conditions are true
           /////////////////////////////////////////////////
-          Serial.println("Output triggered!");                
+          Serial.println("Output triggered!");
           digitalWrite (13, HIGH);
           delay(1000);
           digitalWrite (13, LOW);
-          
+
           break;
         }
       }
+      force.Dispense();
     }
-    
+
     force.Timeout(force.timeout_length);                      //timeout (length in seconds)
   }
 }
