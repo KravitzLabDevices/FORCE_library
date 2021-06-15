@@ -52,9 +52,9 @@ void loop() {
           // FORCE does this when both conditions are true
           /////////////////////////////////////////////////
           Serial.println("Output triggered!");
-          digitalWrite (13, HIGH);
-          delay(1000);
-          digitalWrite (13, LOW);
+          digitalWrite (6, HIGH);
+          delay(100);
+          digitalWrite (6, LOW);
 
           break;
         }
