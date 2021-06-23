@@ -119,7 +119,7 @@ class Force {
     int timeout_length = 10;
     bool lick = false;
     int start_timer = 0;
-    int trial = 1;
+    int trial = 0;
     int presses = 0;
     int req = 2;
     unsigned long pressStart = 0;
@@ -130,6 +130,9 @@ class Force {
     unsigned long start_time = 0;
     unsigned long lickTime = 0;
     unsigned long dispenseTime = 0;
+    int random_number = 0;
+    bool shock = false;
+    bool dispensing = false;
 
     // --- Serial out--- //
     void SerialOutput();
