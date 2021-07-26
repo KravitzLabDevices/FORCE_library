@@ -44,7 +44,6 @@ void Force::run() {
 // TaskFunctions 
 /////////////////////////////////////////////////////////////////////////
 void Force::Dispense() {
-  dispensing = true;
   trial++;
  // Tone();
   float successTime = millis();
@@ -54,6 +53,7 @@ void Force::Dispense() {
     tft.print("Delay:");
     tft.setTextColor(ST7735_WHITE);
     tft.print((-(millis() - successTime - (dispense_delay*1000))/ 1000),1);
+    tft.print("s");
     run();
     tft.fillRect(84, 43, 80, 12, ST7735_BLACK); // remove Delay text when timeout is over
     if (grams > 1 or grams2 >1){ //only clear F1 ans F2 values if levers are being pushed
@@ -71,7 +71,7 @@ void Force::Dispense() {
   digitalWrite(13, LOW); // RED LED
   pressTime = millis();
   pressLength = 0;
-  dispensing = false;
+  Timeout(timeout_length);
 }
 
 void Force::Timeout(int timeout_length) {
@@ -81,8 +81,9 @@ void Force::Timeout(int timeout_length) {
     tft.setTextColor(ST7735_WHITE);
     tft.print("Timeout:");
     tft.print((-(millis() - dispense_time - (timeout_length*1000))/ 1000),1);
+    tft.print("s");
     run();
-    tft.fillRect(84, 43, 80, 12, ST7735_BLACK);
+    tft.fillRect(84, 43, 80, 12, ST7735_BLACK); 
     if ((grams > 1.5) or (grams2 > 1.5)) { //reset timeout if either lever pushed
       Timeout(timeout_length); 
       tft.fillRect(12, 0, 38, 24, ST7735_BLACK); // clear the text after F1 F2 labels
@@ -474,10 +475,11 @@ void Force::graphLegend() {
     tft.setTextColor(ST7735_WHITE);
     tft.setCursor(0, 28);
     tft.print ("Lick");
+    digitalWrite(A3, HIGH);
     DateTime now = rtc.now();
     lickTime = now.unixtime();
   }
-  
+  digitalWrite(A3, LOW);
   if (calibrated == false){
     tft.setCursor(85, 56);
     tft.print ("Uncalibrated");
@@ -509,7 +511,7 @@ void Force::CreateDataFile() {
 
 // Write data header to file of uSD.
 void Force::writeHeader() {
-  logfile.println("MM:DD:YYYY hh:mm:ss, Seconds, Device_Number, ProgressiveRatio, Grams_req, Hold_time, Ratio, Dispense_amount, Dispense_delay, Timeout, Trials_per_block, Max_force, Trial, Press, Lever1_Grams, Lever2_Grams, Licks, Dispense, Random_Num, Shock_trial");
+  logfile.println("MM:DD:YYYY hh:mm:ss, Seconds, Device_Number, ProgressiveRatio, Grams_req, Hold_time, Ratio, Dispense_amount, Dispense_delay, Timeout, Trials_per_block, Max_force, Trial, Lever1_Grams, Lever2_Grams, Licks");
 }
 
 // Print data and time followed by pellet count and motorturns to SD card
@@ -569,25 +571,13 @@ void Force::WriteToSD() {
   logfile.print(trial);
   logfile.print(",");
   
-  logfile.print(presses);
-  logfile.print(",");
-  
   logfile.print(grams);
   logfile.print(",");
   
   logfile.print(grams2);
   logfile.print(",");
   
-  logfile.print(lick);
-  logfile.print(",");
-
-  logfile.print(dispensing);
-  logfile.print(",");
-
-  logfile.print(random_number);
-  logfile.print(",");
-  
-  logfile.println(shock);
+  logfile.println(lick);
 
   logfile.flush();
 
