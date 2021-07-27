@@ -516,7 +516,7 @@ void Force::CreateDataFile() {
 
 // Write data header to file of uSD.
 void Force::writeHeader() {
-  logfile.println("MM:DD:YYYY hh:mm:ss, Seconds, Device_Number, ProgressiveRatio, Grams_req, Hold_time, Ratio, Dispense_amount, Dispense_delay, Timeout, Trials_per_block, Max_force, Trial, Press, Lever1_Grams, Lever2_Grams, Licks, Dispense, Random_Num, Shock_trial");
+  logfile.println("MM:DD:YYYY hh:mm:ss, Seconds, Library_Version, Program, Device_Number, ProgressiveRatio, Grams_req, Hold_time, Ratio, Dispense_amount, Dispense_delay, Timeout, Trials_per_block, Max_force, Trial, Press, Lever1_Grams, Lever2_Grams, Licks, Dispense, Random_Num, Shock_trial");
 }
 
 // Print data and time followed by pellet count and motorturns to SD card
@@ -541,7 +541,13 @@ void Force::WriteToSD() {
   
   logfile.print((millis()-start_time)/1000.0000); //print seconds since start
   logfile.print(",");
+
+  logfile.print(VER); // Print library version
+  logfile.print(",");
   
+  logfile.print(library_version); // Print code or program version
+  logfile.print(",");
+
   logfile.print(FRC); // Print device name
   logfile.print(",");
   

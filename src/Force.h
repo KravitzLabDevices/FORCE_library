@@ -9,6 +9,7 @@
  * - Adafruit GFX Library (v1.10.7) by Adafruit
  * - Adafruit Adafruit_SPIFlash (v3.4.1) by Adafruit
 */
+#define VER "1.3.2"  
 
 #ifndef FORCE_H
 #define FORCE_H
