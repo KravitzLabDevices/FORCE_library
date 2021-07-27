@@ -32,8 +32,9 @@ void loop() {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   if (force.pressLength > force.hold_time) {                  //if the force lever is held down for longer than the hold_req
     force.presses++;                                          //keep count of successful presses
+    
     if (force.presses == force.ratio) {                       //if the ratio for number of presses is met
-
+      force.Tone();                                           //tone signals pending reward
       //This code block runs only if it's a progressive ratio session
       if (force.PR == true) {                                 //if it's a progressive ratio session
         if ((force.trial % force.trials_per_block) == 0) {    //if the number of trials_per_block is reached 
@@ -43,6 +44,7 @@ void loop() {
       }
       
       force.Dispense();                                       //dispense reward
+      force.Timeout(force.timeout_length);                    //timeout (length in seconds)
       force.presses = 0;                                      //reset presses
     }
     else {
