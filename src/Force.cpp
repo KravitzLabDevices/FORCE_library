@@ -132,10 +132,7 @@ void Force::begin() {
   tft.setRotation(3);
   tft.fillScreen(ST77XX_BLACK);
 
-  // Initialize SD
-  SdFile::dateTimeCallback(dateTime);
-  CreateDataFile();
-  writeHeader();
+
 
   // Initialize RTC
   if (!rtc.initialized() || rtc.lostPower()) {
@@ -168,9 +165,17 @@ void Force::begin() {
   scale2.tare();
   scale2.set_scale(calibration_factor);
 
+
+
   //start up menu
   start_up_menu();
   tft.fillScreen(ST77XX_BLACK);
+
+  // Initialize SD
+  SdFile::dateTimeCallback(dateTime);
+  CreateDataFile();
+  writeHeader();
+
 }
 
 /////////////////////////////////////////////////////////////////////////
