@@ -547,7 +547,7 @@ void Force::WriteToSD() {
   logfile.print((millis()-start_time)/1000.0000); //print seconds since start
   logfile.print(",");
 
-  logfile.print(VER); // Print library version
+  logfile.print(ver); // Print library version
   logfile.print(",");
   
   logfile.print(library_version); // Print code or program version
